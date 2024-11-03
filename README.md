@@ -11,7 +11,7 @@ This CLI tool allows you to manage AWS resources: EC2 instances, S3 buckets, and
 ## Installation
 Clone the repository and install any required packages:
 ```bash
-git clone <repository-url>
+git clone (https://github.com/galkamay/Platform-Engineering.git)
 pip install -r requirements.txt
 ```
 
