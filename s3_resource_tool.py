@@ -3,13 +3,13 @@ import boto3
 import json
 from botocore.exceptions import ClientError
 
-
+# Function to create an S3 bucket
 def create_s3_bucket(bucket_name, public):
     s3 = boto3.client('s3')
 
     s3.create_bucket(Bucket=bucket_name)
 
-    # הוספת תגית לציון שה-bucket נוצר דרך ה-CLI
+    # Add a tag indicating the bucket was created via CLI
     s3.put_bucket_tagging(
         Bucket=bucket_name,
         Tagging={'TagSet': [{'Key': 'CreatedBy', 'Value': 'CLI'}]}
@@ -21,7 +21,7 @@ def create_s3_bucket(bucket_name, public):
             print("Bucket creation cancelled.")
             return
 
-        # הוספת מדיניות ציבורית במקום ACL
+        # Add public policy instead of ACL
         public_policy = {
             "Version": "2012-10-17",
             "Statement": [
@@ -42,6 +42,7 @@ def create_s3_bucket(bucket_name, public):
         print(f"S3 Bucket {bucket_name} created with private access.")
 
 
+# Function to list S3 buckets created via CLI
 def list_s3_buckets():
     s3 = boto3.client('s3')
     response = s3.list_buckets()
@@ -58,20 +59,21 @@ def list_s3_buckets():
         except ClientError as e:
             error_code = e.response['Error']['Code']
             if error_code == 'NoSuchTagSet':
-                # אם אין תגיות, פשוט דלג על ה-bucket
+                # Skip bucket if it has no tags
                 continue
             elif error_code == 'AccessDenied':
-                # אם אין הרשאה לגשת ל-bucket, דלג עליו
+                # Skip bucket if access is denied
                 print(f"Access denied for bucket: {bucket['Name']}")
                 continue
             else:
-                raise e  # אם זו שגיאה אחרת, להרים אותה
+                raise e  # Raise other errors
 
 
+# Function to delete an S3 bucket
 def delete_s3_bucket(bucket_name):
     s3 = boto3.client('s3')
 
-    # בדיקת אם ה-bucket נוצר דרך ה-CLI
+    # Check if the bucket was created via CLI
     try:
         tags = s3.get_bucket_tagging(Bucket=bucket_name)
         cli_bucket = any(tag['Key'] == 'CreatedBy' and tag['Value'] == 'CLI' for tag in tags['TagSet'])
@@ -80,13 +82,13 @@ def delete_s3_bucket(bucket_name):
             print(f"Bucket {bucket_name} was not created by the CLI. Deletion not allowed.")
             return
 
-        # מחיקת כל האובייקטים מה-bucket לפני מחיקת ה-bucket עצמו
+        # Delete all objects in the bucket before deleting the bucket itself
         response = s3.list_objects_v2(Bucket=bucket_name)
         if 'Contents' in response:
             for obj in response['Contents']:
                 s3.delete_object(Bucket=bucket_name, Key=obj['Key'])
 
-        # מחיקת ה-bucket
+        # Delete the bucket
         s3.delete_bucket(Bucket=bucket_name)
         print(f"S3 Bucket {bucket_name} deleted successfully.")
 
@@ -94,10 +96,11 @@ def delete_s3_bucket(bucket_name):
         print(f"Error deleting bucket: {e}")
 
 
+# Function to upload a file to an S3 bucket
 def upload_file_to_s3(bucket_name, file_path):
     s3 = boto3.client('s3')
 
-    # בדיקה אם ה-bucket נוצר דרך ה-CLI
+    # Check if the bucket was created via CLI
     try:
         tags = s3.get_bucket_tagging(Bucket=bucket_name)
         cli_bucket = any(
@@ -105,8 +108,7 @@ def upload_file_to_s3(bucket_name, file_path):
                 tags['TagSet'])
 
         if not cli_bucket:
-            print(
-                f"Bucket {bucket_name} was not created by the CLI. Upload not allowed.")
+            print(f"Bucket {bucket_name} was not created by the CLI. Upload not allowed.")
             return
 
         s3.upload_file(file_path, bucket_name, file_path.split('/')[-1])
@@ -116,6 +118,7 @@ def upload_file_to_s3(bucket_name, file_path):
         print(f"Error uploading file: {e}")
 
 
+# Function to delete a file from an S3 bucket
 def delete_file_from_s3(bucket_name, file_name):
     s3 = boto3.client('s3')
 
@@ -170,4 +173,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main() 
+    main()
