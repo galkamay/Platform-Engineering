@@ -2,7 +2,7 @@ import argparse
 import boto3
 from botocore.exceptions import ClientError
 
-# פונקציה ליצירת Hosted Zone
+# Function to create a Hosted Zone
 def create_route53_zone(domain_name):
     route53 = boto3.client('route53')
 
@@ -11,7 +11,7 @@ def create_route53_zone(domain_name):
         CallerReference=str(hash(domain_name)),
         HostedZoneConfig={
             'Comment': 'Created by CLI',
-            'PrivateZone': False  # אפשרות ל-Zone ציבורי
+            'PrivateZone': False  # Option for a public zone
         }
     )
 
@@ -19,7 +19,7 @@ def create_route53_zone(domain_name):
     print(f"Hosted zone created for domain {domain_name} with ID: {zone_id}")
     return zone_id
 
-# פונקציה להוספת רשומת DNS
+# Function to add a DNS record
 def add_dns_record(zone_id, record_name, record_value, ttl=300):
     route53 = boto3.client('route53')
 
@@ -41,7 +41,7 @@ def add_dns_record(zone_id, record_name, record_value, ttl=300):
     )
     print(f"DNS record {record_name} created with value {record_value}.")
 
-# פונקציה לעדכון רשומת DNS
+# Function to update a DNS record
 def update_dns_record(zone_id, record_name, record_value, ttl=300):
     route53 = boto3.client('route53')
 
@@ -63,7 +63,7 @@ def update_dns_record(zone_id, record_name, record_value, ttl=300):
     )
     print(f"DNS record {record_name} updated to value {record_value}.")
 
-# פונקציה למחיקת רשומת DNS
+# Function to delete a DNS record
 def delete_dns_record(zone_id, record_name, record_value, ttl=300):
     route53 = boto3.client('route53')
 
