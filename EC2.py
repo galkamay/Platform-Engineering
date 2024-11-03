@@ -1,9 +1,10 @@
 import argparse
 import boto3
 
-# הגדרת Subnet דיפולטיבי
+# Default Subnet ID
 DEFAULT_SUBNET_ID = 'subnet-02305e9ebc28f7414'
 
+# Function to create an EC2 instance
 def create_ec2_instance(ami_id, instance_type, name, assign_public_ip):
     ec2 = boto3.resource('ec2')
 
@@ -34,18 +35,18 @@ def create_ec2_instance(ami_id, instance_type, name, assign_public_ip):
         print(f"Instance {instance.id} created successfully with name '{name}' and public IP: {assign_public_ip}")
     return instances
 
-
+# Function to list EC2 instances created via CLI
 def list_ec2_instances():
     ec2 = boto3.client('ec2')
     response = ec2.describe_instances(
-            Filters=[{'Name': 'tag:CreatedBy', 'Values': ['CLI']}]
+        Filters=[{'Name': 'tag:CreatedBy', 'Values': ['CLI']}]
     )
 
     for reservation in response['Reservations']:
         for instance in reservation['Instances']:
             print(f"Instance ID: {instance['InstanceId']}, State: {instance['State']['Name']}, Name: {instance['Tags']}")
 
-
+# Function to manage an EC2 instance (start, stop, or terminate)
 def manage_instance(instance_id, action):
     ec2 = boto3.client('ec2')
 
@@ -58,7 +59,6 @@ def manage_instance(instance_id, action):
     elif action == 'terminate':
         ec2.terminate_instances(InstanceIds=[instance_id])
         print(f"Instance {instance_id} terminated.")
-
 
 def main():
     parser = argparse.ArgumentParser(
@@ -99,7 +99,6 @@ def main():
         list_ec2_instances()
     elif args.command == 'manage':
         manage_instance(args.instance_id, args.action)
-
 
 if __name__ == "__main__":
     main()
